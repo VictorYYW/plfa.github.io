@@ -81,7 +81,8 @@ successor of two; and so on.
 Write out `7` in longhand.
 
 ```
--- Your code goes here
+_ : ℕ
+_ = suc (suc (suc (suc (suc (suc (suc zero))))))
 ```
 
 
@@ -430,7 +431,16 @@ other word for evidence, which we will use interchangeably, is _proof_.
 Compute `3 + 4`, writing out your reasoning as a chain of equations, using the equations for `+`.
 
 ```
--- Your code goes here
+_ : 3 + 4 ≡ 7
+_ =
+  begin
+    3 + 4
+  ≡⟨⟩ suc (2 + 4)
+  ≡⟨⟩ suc (suc (1 + 4))
+  ≡⟨⟩ suc (suc (suc (0 + 4)))
+  ≡⟨⟩ suc (suc (suc (4)))
+  ≡⟨⟩ 7
+  ∎
 ```
 
 
@@ -443,6 +453,7 @@ _*_ : ℕ → ℕ → ℕ
 zero    * n  =  zero
 (suc m) * n  =  n + (m * n)
 ```
+
 Computing `m * n` returns the sum of `m` copies of `n`.
 
 Again, rewriting turns the definition into two familiar equations:
@@ -466,6 +477,7 @@ larger numbers is defined in terms of multiplication of smaller numbers.
 
 For example, let's multiply two and three:
 ```
+_ : 2 * 3 ≡ 6
 _ =
   begin
     2 * 3
@@ -492,7 +504,21 @@ Compute `3 * 4`, writing out your reasoning as a chain of equations, using the e
 (You do not need to step through the evaluation of `+`.)
 
 ```
--- Your code goes here
+_ : 3 * 4 ≡ 12
+_ =
+  begin
+    3 * 4
+  ≡⟨⟩ 
+    4 + (2 * 4)
+  ≡⟨⟩
+    4 + (4 + (1 * 4))
+  ≡⟨⟩
+    4 + (4 + (4 + (0 * 4)))
+  ≡⟨⟩
+    4 + (4 + (4 + 0))
+  ≡⟨⟩
+    12
+  ∎
 ```
 
 
@@ -506,7 +532,12 @@ Define exponentiation, which is given by the following equations:
 Check that `3 ^ 4` is `81`.
 
 ```
--- Your code goes here
+_^_ : ℕ → ℕ → ℕ
+m ^ zero = 1
+m ^ (suc n) = m * (m ^ n)
+
+_ : 3 ^ 4 ≡ 81
+_ = refl
 ```
 
 
@@ -571,7 +602,31 @@ _ =
 Compute `5 ∸ 3` and `3 ∸ 5`, writing out your reasoning as a chain of equations.
 
 ```
--- Your code goes here
+_ =
+  begin
+    5 ∸ 3
+  ≡⟨⟩
+    4 ∸ 2
+  ≡⟨⟩
+    3 ∸ 1
+  ≡⟨⟩
+    2 ∸ 0
+  ≡⟨⟩
+    2
+  ∎
+
+_ =
+  begin
+    3 ∸ 5
+  ≡⟨⟩
+    2 ∸ 4
+  ≡⟨⟩
+    1 ∸ 3
+  ≡⟨⟩
+    0 ∸ 2
+  ≡⟨⟩
+    0
+  ∎
 ```
 
 
@@ -849,7 +904,6 @@ Exploiting interaction to this degree is probably not helpful for a program this
 simple, but the same techniques can help with more complex programs.  Even for
 a program this simple, using `C-c C-c` to split cases can be helpful.
 
-
 ## More pragmas
 
 Including the lines
@@ -917,7 +971,64 @@ represents a positive natural, and represent zero by `⟨⟩ O`.
 Confirm that these both give the correct answer for zero through four.
 
 ```
--- Your code goes here
+inc : Bin -> Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (b O) = b I
+inc (b I) = inc (b) O
+
+inc_zero : inc (⟨⟩ O) ≡ ⟨⟩ I
+inc_zero = refl
+
+inc_one : inc (⟨⟩ I) ≡ ⟨⟩ I O
+inc_one = refl
+
+inc_two : inc (⟨⟩ I O) ≡ ⟨⟩ I I
+inc_two = refl
+
+inc_three : inc (⟨⟩ I I) ≡ ⟨⟩ I O O
+inc_three = refl
+
+inc_four : inc (⟨⟩ I O O) ≡ ⟨⟩ I O I
+inc_four = refl
+
+to : ℕ → Bin
+to zero = ⟨⟩ O
+to (suc n) = inc (to n)
+
+to_zero : to 0 ≡ ⟨⟩ O
+to_zero = refl
+
+to_one : to 1 ≡ ⟨⟩ I
+to_one = refl
+
+to_two : to 2 ≡ ⟨⟩ I O
+to_two = refl
+
+to_three : to 3 ≡ ⟨⟩ I I
+to_three = refl
+
+to_four : to 4 ≡ ⟨⟩ I O O
+to_four = refl
+
+from : Bin → ℕ
+from ⟨⟩ = 0
+from (b O) = 2 * from b
+from (b I) = 2 * from b + 1
+
+from_zero : from (⟨⟩ O) ≡ 0
+from_zero = refl
+
+from_one : from (⟨⟩ I) ≡ 1
+from_one = refl
+
+from_two : from (⟨⟩ I O) ≡ 2
+from_two = refl
+
+from_three : from (⟨⟩ I I) ≡ 3
+from_three = refl
+
+from_four : from (⟨⟩ I O O) ≡ 4
+from_four = refl
 ```
 
 
@@ -983,7 +1094,6 @@ For a full list of supported characters, use `agda-input-show-translations` with
 All the characters supported by `agda-mode` are shown. We write M-x to stand for
 typing `ESC` followed by `x`.
 
-If you want to know how you input a specific Unicode character in an agda file,
 move the cursor onto the character and use `quail-show-key` with:
 
     M-x quail-show-key
