@@ -27,9 +27,9 @@ and some operations upon them.  We also import a couple of new operations,
 `cong`, `sym`, and `_≡⟨_⟩_`, which are explained below:
 ```
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong; sym)
+open Eq using (_≡_; refl; cong; sym; _≢_)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_; _^_)
 ```
 
 
@@ -77,10 +77,13 @@ Give another example of a pair of operators that have an identity
 and are associative, commutative, and distribute over one another.
 (You do not have to prove these properties.)
 
+logic AND and logic OR, UNION and INTERSECTION
+
 Give an example of an operator that has an identity and is
 associative but is not commutative.
 (You do not have to prove these properties.)
 
+matrix multiplication
 
 ## Associativity
 
@@ -701,9 +704,28 @@ Write out what is known about associativity of addition on each of the
 first four days using a finite story of creation, as
 [earlier]({{ site.baseurl }}/Naturals/#finite-creation).
 
-```
--- Your code goes here
-```
+-- First day
+0 : ℕ
+
+-- Second day
+1 : ℕ
+(0 + 0) + 0 = 0 + (0 + 0)
+
+
+-- Third day
+2 : ℕ
+(0 + 0) + 1 = 0 + (0 + 1)
+(0 + 1) + 0 = 0 + (1 + 0)
+(1 + 0) + 0 = 1 + (0 + 0)
+
+-- Fourth day
+3 : ℕ
+(0 + 1) + 1 = 0 + (1 + 1)
+(1 + 0) + 1 = 1 + (0 + 1)
+(1 + 1) + 0 = 1 + (1 + 0)
+(0 + 0) + 2 = 0 + (0 + 2)
+(0 + 2) + 0 = 0 + (2 + 0)
+(2 + 0) + 0 = 2 + (0 + 0)
 
 ## Associativity with rewrite
 
@@ -868,7 +890,17 @@ just apply the previous results which show addition
 is associative and commutative.
 
 ```
--- Your code goes here
++-swap : ∀ (m n p : ℕ) → m + (n + p) ≡ n + (m + p)
++-swap m n p =
+  begin
+    m + (n + p)
+  ≡⟨ sym (+-assoc′ m n p) ⟩
+    (m + n) + p
+  ≡⟨ cong (_+ p) (+-comm′ m n) ⟩
+    (n + m) + p
+  ≡⟨ +-assoc′ n m p ⟩
+    n + (m + p)
+  ∎
 ```
 
 
@@ -881,7 +913,9 @@ Show multiplication distributes over addition, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```
--- Your code goes here
+*-distrib-+ : ∀ (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
+*-distrib-+ zero n p = refl
+*-distrib-+ (suc m) n p rewrite *-distrib-+ m n p = sym (+-assoc′ p (m * p) (n * p))
 ```
 
 
@@ -894,7 +928,9 @@ Show multiplication is associative, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```
--- Your code goes here
+*-assoc : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+*-assoc zero n p = refl
+*-assoc (suc m) n p rewrite *-distrib-+ n (m * n) p | *-assoc m n p = refl
 ```
 
 
@@ -908,7 +944,22 @@ for all naturals `m` and `n`.  As with commutativity of addition,
 you will need to formulate and prove suitable lemmas.
 
 ```
--- Your code goes here
+*-identity : ∀ (m : ℕ) → m * zero ≡ zero
+*-identity zero = refl
+*-identity (suc m) rewrite *-identity m = refl
+
+*-suc : ∀ (m n : ℕ) → m * suc n ≡ m + m * n
+*-suc zero n = refl
+*-suc (suc m) n
+  rewrite *-suc m n
+  | sym (+-assoc n m (m * n))
+  | sym (+-assoc m n (m * n))
+  | +-comm m n
+  = refl
+
+*-comm : ∀ (m n) → m * n ≡ n * m
+*-comm zero n rewrite *-identity n = refl
+*-comm (suc m) n rewrite *-suc n m | *-comm m n = refl
 ```
 
 
@@ -921,7 +972,9 @@ Show
 for all naturals `n`. Did your proof require induction?
 
 ```
--- Your code goes here
+0∸n≡0 : ∀ (n : ℕ) → zero ∸ n ≡ zero
+0∸n≡0 zero = refl
+0∸n≡0 (suc n) = refl
 ```
 
 
@@ -934,7 +987,10 @@ Show that monus associates with addition, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```
--- Your code goes here
+∸-+-assoc : ∀ (m n p : ℕ) → m ∸ n ∸ p ≡ m ∸ (n + p)
+∸-+-assoc zero n p rewrite 0∸n≡0 n | 0∸n≡0 p | 0∸n≡0 (n + p)= refl
+∸-+-assoc (suc m) zero p = refl
+∸-+-assoc (suc m) (suc n) p rewrite ∸-+-assoc m n p = refl
 ```
 
 
@@ -948,6 +1004,28 @@ Show the following three laws
 
 for all `m`, `n`, and `p`.
 
+```
+^-distribˡ-+-* : ∀ (m n p : ℕ) → m ^ (n + p) ≡ (m ^ n) * (m ^ p)
+^-distribˡ-+-* m zero p rewrite +-identityʳ (m ^ p) = refl
+^-distribˡ-+-* m (suc n) p rewrite ^-distribˡ-+-* m n p = sym (*-assoc m (m ^ n) (m ^ p))
+
+^-distribʳ-* : ∀ (m n p : ℕ) → (m * n) ^ p ≡ (m ^ p) * (n ^ p)
+^-distribʳ-* m n zero = refl
+^-distribʳ-* m n (suc p) rewrite ^-distribʳ-* m n p = 
+  begin
+    m * n * ((m ^ p) * (n ^ p))
+  ≡⟨ *-assoc m n ((m ^ p) * (n ^ p)) ⟩
+    m * (n * ((m ^ p) * (n ^ p)))
+  ≡⟨ cong (m *_) (sym (*-assoc n (m ^ p) (n ^ p))) ⟩
+    m * (n * (m ^ p) * (n ^ p))
+  ≡⟨ cong (m *_) (cong (_* (n ^ p)) (*-comm n (m ^ p))) ⟩
+    m * ((m ^ p) * n * (n ^ p))
+  ≡⟨ cong (m *_) (*-assoc (m ^ p) n (n ^ p)) ⟩
+    m * ((m ^ p) * (n * (n ^ p)))
+  ≡⟨ sym (*-assoc m (m ^ p) (n * (n ^ p))) ⟩
+    m * (m ^ p) * (n * (n ^ p))
+  ∎
+```
 
 #### Exercise `Bin-laws` (stretch) {#Bin-laws}
 
@@ -970,7 +1048,39 @@ over bitstrings:
 For each law: if it holds, prove; if not, give a counterexample.
 
 ```
--- Your code goes here
+data Bin : Set where
+  ⟨⟩ : Bin
+  _O : Bin → Bin
+  _I : Bin → Bin
+
+inc : Bin -> Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (b O) = b I
+inc (b I) = inc (b) O
+
+to : ℕ → Bin
+to zero = ⟨⟩ O
+to (suc n) = inc (to n)
+
+from : Bin → ℕ
+from ⟨⟩ = 0
+from (b O) = 2 * from b
+from (b I) = 2 * from b + 1
+
+b-inc : ∀ (b : Bin) → from (inc b) ≡ suc (from b)
+b-inc ⟨⟩ = refl
+b-inc (b O) = +-comm (from b + (from b + zero)) 1
+b-inc (b I)
+  rewrite b-inc b
+  | +-comm 1 (from b + 0)
+  | +-assoc (from b) (from b + 0) 1
+  = refl
+
+-- counterexample: to (from ⟨⟩) ≢ ⟨⟩
+
+n-id : ∀ (n : ℕ) → from (to n) ≡ n
+n-id zero = refl
+n-id (suc n) rewrite b-inc (to n) | n-id n = refl
 ```
 
 
